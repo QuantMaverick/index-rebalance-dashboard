@@ -18,6 +18,8 @@ import * as SummaryStrip from "./sections/summary_strip.js";
 import * as DecayChart from "./sections/decay_chart.js";
 import * as EventStudyChart from "./sections/event_study_chart.js";
 import * as EventsTable from "./sections/events_table.js";
+import * as LiquidityPanel from "./sections/liquidity_panel.js";
+import * as UpcomingMonitor from "./sections/upcoming_monitor.js";
 
 /** @type {"sp500" | "msci_sg"} */
 let currentIndex = "sp500";
@@ -28,6 +30,8 @@ const SECTIONS = {
   decay: "decay-chart",
   eventStudy: "event-study-chart",
   eventsTable: "events-table",
+  liquidityPanel: "liquidity-panel",
+  upcomingMonitor: "upcoming-monitor",
 };
 
 /**
@@ -111,6 +115,13 @@ async function renderIndex(index) {
   EventsTable.render(SECTIONS.eventsTable, {
     events: bundle.events,
     indexLabel,
+  });
+  LiquidityPanel.render(SECTIONS.liquidityPanel, {
+    events: bundle.events,
+    indexLabel,
+  });
+  UpcomingMonitor.render(SECTIONS.upcomingMonitor, {
+    upcoming: bundle.upcoming,
   });
 }
 

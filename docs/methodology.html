@@ -4,8 +4,26 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Methodology — Index Rebalance Dashboard</title>
+  <meta name="description" content="Mathematical methodology + honest limitations for the index-rebalance dashboard." />
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+  <style>
+    .prose-quant { color: #d4d4d8; line-height: 1.7; max-width: 72ch; }
+    .prose-quant h1 { font-size: 1.875rem; font-weight: 700; color: #fafafa; margin: 2rem 0 1rem; }
+    .prose-quant h2 { font-size: 1.5rem;  font-weight: 700; color: #fafafa; margin: 2.5rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid #27272a; }
+    .prose-quant h3 { font-size: 1.125rem; font-weight: 600; color: #fafafa; margin: 1.5rem 0 0.5rem; }
+    .prose-quant p  { margin: 0.75rem 0; }
+    .prose-quant code { background: #18181b; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; color: #14b8a6; }
+    .prose-quant ul { list-style: disc; margin-left: 1.5rem; }
+    .prose-quant ol { list-style: decimal; margin-left: 1.5rem; }
+    .prose-quant li { margin: 0.25rem 0; }
+    .prose-quant a  { color: #14b8a6; text-decoration: underline; }
+    .katex-display { background: #18181b; padding: 0.5rem; border-radius: 0.25rem; border-left: 2px solid #14b8a6; overflow-x: auto; }
+    .toc a { display: block; padding: 0.25rem 0; }
+  </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 font-sans">
   <header class="border-b border-zinc-800 sticky top-0 bg-zinc-950 z-10">
@@ -14,17 +32,126 @@
       <h1 class="text-xl font-bold tracking-tight">Methodology</h1>
       <div class="flex-1"></div>
       <a href="https://github.com/QuantMaverick/index-rebalance-dashboard" class="text-zinc-400 hover:text-zinc-100 text-sm">GitHub</a>
+      <a href="https://github.com/QuantMaverick/index-rebalance-tracker" class="text-zinc-400 hover:text-zinc-100 text-sm">Tracker</a>
     </div>
   </header>
-  <main class="max-w-3xl mx-auto px-6 py-12 prose prose-invert">
-    <p class="text-zinc-400 text-sm">
-      Full KaTeX-rendered methodology page lands in Step 7. For now, see the
-      <a class="text-teal-400 underline" href="https://github.com/QuantMaverick/index-rebalance-tracker/blob/main/docs/methodology.html">tracker's methodology page</a>
-      which already contains all derivations: Brown-Warner market model, sector-matched controls, Corwin-Schultz spread estimator, Kyle's lambda, square-root impact TCA, decay aggregation, and the full limitations list.
-    </p>
-    <p class="text-zinc-400 text-sm mt-6">
-      The dashboard's methodology page will replicate that content with internal anchors so chart tooltips can deep-link.
-    </p>
+
+  <main class="max-w-5xl mx-auto px-6 py-10 grid lg:grid-cols-[12rem_1fr] gap-12">
+    <nav class="toc text-xs text-zinc-500 font-mono sticky top-20 self-start hidden lg:block">
+      <a href="#s1">§1 · Event-Study</a>
+      <a href="#s2">§2 · Sector-Matched</a>
+      <a href="#s3">§3 · Liquidity</a>
+      <a href="#s4">§4 · TCA</a>
+      <a href="#s5">§5 · Decay</a>
+      <a href="#s6">§6 · Limitations</a>
+      <a href="#s7">§7 · Citations</a>
+    </nav>
+
+    <article class="prose-quant">
+      <p class="text-zinc-400">
+        Every formula on the dashboard is derived below. Honest about assumptions, explicit about limitations. This page mirrors the source-of-truth methodology document in the
+        <a href="https://github.com/QuantMaverick/index-rebalance-tracker/blob/main/docs/METHODOLOGY.md">tracker repo</a>.
+      </p>
+
+      <h2 id="s1">§1 — Event-Study Methodology (Brown-Warner 1985)</h2>
+      <p>
+        For each addition / deletion event with effective date $T_E$ and approximated announcement date $T_A = T_E - 5$ trading days, we estimate a market model on a 250-day pre-event window ending 30 days before $T_A$.
+      </p>
+      <p><strong>Estimation regression:</strong></p>
+      $$R_{i,t} = \alpha_i + \beta_i R_{m,t} + \varepsilon_{i,t}, \qquad t \in [T_A - 280, T_A - 30]$$
+      <p>$R_{i,t}$ is the simple daily return of stock $i$; $R_{m,t}$ is the SPY ETF return; the 30-day gap before $T_A$ protects against pre-announcement leakage.</p>
+      <p><strong>Abnormal return:</strong></p>
+      $$AR_{i,t} = R_{i,t} - (\hat\alpha_i + \hat\beta_i R_{m,t})$$
+      <p><strong>Cumulative abnormal return over a window $[t_1, t_2]$:</strong></p>
+      $$\text{CAR}_i^{[t_1, t_2]} = \sum_{t=t_1}^{t_2} AR_{i,t}$$
+      <p>The dashboard reports four canonical windows per event: $[T_A-5, T_A-1]$ pre-run-up, $[T_A, T_E-1]$ announcement-to-effective, $[T_E, T_E+5]$ post-effective drift, and the full $[T_A-5, T_E+5]$ window.</p>
+
+      <h2 id="s2">§2 — Sector-Matched Control Returns</h2>
+      <p>An alternative AR specification uses GICS sector + size-matched peers. For each event stock $i$ at $T_A$:</p>
+      <ol>
+        <li>Filter the universe to non-event stocks in the same GICS sector.</li>
+        <li>Rank candidates by $|\ln \text{ADV}_j - \ln \text{ADV}_i|$ where ADV is the 60-day pre-event average dollar volume (size proxy).</li>
+        <li>Take the closest 5 peers; the control return is their cross-sectional median.</li>
+      </ol>
+      <p><strong>Sector-matched abnormal return:</strong></p>
+      $$AR_{i,t}^{\text{sector}} = R_{i,t} - \text{median}_{j \in \text{controls}}(R_{j,t})$$
+      <p>Why ADV not market cap: free data sources don't carry historical-as-of-$T_A$ market cap; ADV is highly correlated with cap within sector and is directly computable from the OHLCV cache.</p>
+
+      <h2 id="s3">§3 — Liquidity Estimators</h2>
+      <h3>Amihud illiquidity (2002)</h3>
+      $$\Lambda^{\text{Amihud}}_i = \frac{1}{N} \sum_{t=1}^{N} \frac{|R_{i,t}|}{\text{DollarVolume}_{i,t}}$$
+      <p>Average daily price impact per dollar of volume over the 60-day pre-announcement window.</p>
+
+      <h3>Corwin-Schultz spread proxy (2012)</h3>
+      <p>Two-day overlapping pairs, with $H_t$ and $L_t$ the daily high and low:</p>
+      $$\beta = (\ln H_t / L_t)^2 + (\ln H_{t+1} / L_{t+1})^2$$
+      $$\gamma = (\ln \max(H_t, H_{t+1}) / \min(L_t, L_{t+1}))^2$$
+      $$\alpha = \frac{\sqrt{2\beta} - \sqrt{\beta}}{3 - 2\sqrt{2}} - \sqrt{\frac{\gamma}{3 - 2\sqrt{2}}}$$
+      $$S = \frac{2(e^\alpha - 1)}{1 + e^\alpha}$$
+      <p>Negative $\alpha$ floored to zero per the published convention.</p>
+
+      <h3>Kyle's lambda (daily-data variant)</h3>
+      <p>Tick-rule signed volume $Q_t = \text{sign}(R_{i,t}) \cdot V_{i,t}$, then intercept-free OLS:</p>
+      $$\hat\lambda = \frac{\sum_t Q_t \, \Delta P_t}{\sum_t Q_t^2}$$
+      <p>This is a daily-data approximation of Kyle's (1985) intraday formulation; we surface it as a relative liquidity ranking, not an absolute price-impact measure.</p>
+
+      <h2 id="s4">§4 — TCA / Implementation Shortfall</h2>
+      <p><strong>Estimated demand</strong> for one event:</p>
+      $$\text{demand}_i = \text{passiveAUM} \times \frac{\text{stockADV}_i}{\sum_j \text{stockADV}_j}$$
+      <p>(Float-weight proxy via ADV-share-of-index. Real index providers compute weights from float-adjusted shares × price; the documented limitation in §6 explains why we don't have those.)</p>
+
+      <p><strong>Square-root market impact (Almgren et al. 2005):</strong></p>
+      $$\text{cost\_bps} = k \cdot \sigma \cdot \sqrt{q / \text{ADV}} \cdot 10^4$$
+      <p>where $\sigma$ is daily-return std (60-day pre-event), $q$ is the trade dollar amount, and $k = 1.0$ is the institutional-flow average per Almgren et al.</p>
+
+      <p><strong>Implementation shortfall comparison:</strong></p>
+      $$\text{forced bps} = k \sigma \sqrt{q / \text{ADV}} \cdot 10^4$$
+      $$\text{spread bps} = \frac{k \sigma \sqrt{q / \text{ADV}} \cdot 10^4}{\sqrt{N}}$$
+      $$\text{savings bps} = \text{forced} - \text{spread}$$
+      <p>$N$ is the number of trading days the order is split over (default 5, matching the typical SP500 $T_A \to T_E$ gap).</p>
+
+      <h2 id="s5">§5 — Index-Effect Decay</h2>
+      <p>For each year cohort, we aggregate the event-level CAR over the canonical $[T_A, T_E-1]$ window. The dashboard reports mean, median, and IQR (p25, p75) per cohort.</p>
+      <p>
+        Petajisto (2011) reports a $+8.8\%$ premium for SP500 additions in 1990–2005. Greenwood-Sammon (2022) and others have argued the effect has compressed materially as more arbitrage capital chases the trade. <strong>Our empirical result on 234 events from 2010–2026 is a near-zero cohort mean</strong> with high cohort-to-cohort variance — consistent with full erosion of the historical premium during our sample window.
+      </p>
+
+      <h2 id="s6">§6 — Limitations & Caveats</h2>
+      <p>The dashboard's polish must not overstate the rigor of the underlying data. Specifically:</p>
+      <ol>
+        <li><strong>Free data sources have gaps and survivorship bias.</strong> yfinance coverage of delisted tickers is imperfect; some historical events are dropped because we cannot reconstruct their pre-event return path.</li>
+        <li><strong>Daily OHLCV is not tick-level.</strong> Spread proxies and Kyle's lambda are estimators, not measurements. True execution cost requires tick-by-tick data outside this project's free-data scope.</li>
+        <li><strong>Wikipedia's "Selected changes" historical record is curated by humans</strong> and may have omissions. We intentionally did not attempt to verify against S&amp;P press releases (often paywalled).</li>
+        <li><strong>MSCI Singapore data is sparser than SP500.</strong> The free-data scraper finds Singapore-mentioning review URLs but cannot extract ticker-level events from MSCI's PDF-based publication format. Production deployment requires a paid MSCI subscription or vendor data feed.</li>
+        <li><strong>Sector matching uses GICS only.</strong> Alternative classifications (ICB, BICS) might yield different control-group results. We use the <em>current</em> Wikipedia GICS sector for historical events; sector reclassifications affect ~5–10% of stocks over 15 years.</li>
+        <li><strong>Estimated demand for upcoming events</strong> uses aggregate passive AUM, ignoring the heterogeneity of tracker-error budgets and rebalancing windows across fund providers (e.g. Vanguard funds front-run more, iShares less).</li>
+        <li><strong>Most importantly: the index effect's decay over time means historical results are unlikely to predict future event returns.</strong> The dashboard is a research tool, not a trading-signal generator.</li>
+      </ol>
+
+      <h2 id="s7">§7 — Citations</h2>
+      <ul>
+        <li>Brown, S. J. and Warner, J. B. (1985). <em>Using daily stock returns: The case of event studies.</em> Journal of Financial Economics 14(1), 3–31.</li>
+        <li>Beneish, M. D. and Whaley, R. E. (1996). <em>An anatomy of the "S&amp;P game": The effects of changing the rules.</em> Journal of Finance 51(5), 1909–30.</li>
+        <li>Chen, H., Noronha, G., and Singal, V. (2004). <em>The price response to S&amp;P 500 index additions and deletions.</em> Journal of Finance 59(4), 1901–29.</li>
+        <li>Petajisto, A. (2011). <em>The index premium and its hidden cost for index funds.</em> Journal of Empirical Finance 18(2), 271–88. <a href="https://doi.org/10.1016/j.jempfin.2010.10.002">DOI</a>.</li>
+        <li>Corwin, S. A. and Schultz, P. (2012). <em>A simple way to estimate bid-ask spreads from daily high and low prices.</em> Journal of Finance 67(2), 719–60. <a href="https://doi.org/10.1111/j.1540-6261.2012.01729.x">DOI</a>.</li>
+        <li>Amihud, Y. (2002). <em>Illiquidity and stock returns: cross-section and time-series effects.</em> Journal of Financial Markets 5(1), 31–56.</li>
+        <li>Kyle, A. S. (1985). <em>Continuous auctions and insider trading.</em> Econometrica 53(6), 1315–35.</li>
+        <li>Almgren, R., Thum, C., Hauptmann, E., and Li, H. (2005). <em>Direct estimation of equity market impact.</em> Risk 18(7), 58–62.</li>
+        <li>Perold, A. F. (1988). <em>The implementation shortfall: paper versus reality.</em> Journal of Portfolio Management 14(3), 4–9.</li>
+        <li>Greenwood, R. and Sammon, M. (2022). <em>The disappearing index effect.</em> Working paper, Harvard Business School.</li>
+      </ul>
+    </article>
   </main>
+
+  <footer class="border-t border-zinc-800 mt-12 py-6 text-zinc-500 text-xs">
+    <div class="max-w-5xl mx-auto px-6 flex flex-wrap gap-3">
+      <a class="hover:text-zinc-300" href="../index.html">← Back to dashboard</a>
+      <span>·</span>
+      <a class="hover:text-zinc-300" href="https://github.com/QuantMaverick/index-rebalance-dashboard">Source on GitHub</a>
+      <span>·</span>
+      <a class="hover:text-zinc-300" href="https://github.com/QuantMaverick/index-rebalance-tracker">Tracker</a>
+    </div>
+  </footer>
 </body>
 </html>

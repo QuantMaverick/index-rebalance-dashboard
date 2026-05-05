@@ -78,14 +78,22 @@
       </p>
     </section>
 
-    <section class="bg-zinc-900 border border-zinc-800 rounded p-4 opacity-60">
-      <h2 class="text-lg font-semibold mb-2">Liquidity & TCA <span class="text-xs text-zinc-500 font-mono">(Step 4)</span></h2>
-      <div class="h-40 skel">ADV log-scale · CS spread · IS distribution histograms</div>
+    <!-- Liquidity & TCA panel -->
+    <section class="bg-zinc-900 border border-zinc-800 rounded p-4">
+      <div class="flex items-baseline justify-between mb-2">
+        <h2 class="text-lg font-semibold">Liquidity & TCA distributions</h2>
+        <span class="text-xs text-zinc-500 font-mono">daily-OHLCV proxies</span>
+      </div>
+      <div id="liquidity-panel"><div class="skel">computing distributions…</div></div>
     </section>
 
-    <section class="bg-zinc-900 border border-zinc-800 rounded p-4 opacity-60">
-      <h2 class="text-lg font-semibold mb-2">Upcoming announcements <span class="text-xs text-zinc-500 font-mono">(Step 5)</span></h2>
-      <div class="h-40 skel">card grid with countdown · est. demand tooltip</div>
+    <!-- Upcoming monitor -->
+    <section class="bg-zinc-900 border border-zinc-800 rounded p-4">
+      <div class="flex items-baseline justify-between mb-2">
+        <h2 class="text-lg font-semibold">Upcoming announcements</h2>
+        <span class="text-xs text-zinc-500 font-mono">live monitor · cron-friendly</span>
+      </div>
+      <div id="upcoming-monitor"><div class="skel">loading upcoming events…</div></div>
     </section>
 
   </main>
