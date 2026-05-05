@@ -16,6 +16,7 @@ import { isLiveMode, loadAll } from "./data_loader.js";
 import * as Header from "./sections/header.js";
 import * as SummaryStrip from "./sections/summary_strip.js";
 import * as DecayChart from "./sections/decay_chart.js";
+import * as EventStudyChart from "./sections/event_study_chart.js";
 
 /** @type {"sp500" | "msci_sg"} */
 let currentIndex = "sp500";
@@ -24,6 +25,7 @@ const SECTIONS = {
   header: "header",
   summary: "summary-strip",
   decay: "decay-chart",
+  eventStudy: "event-study-chart",
 };
 
 /**
@@ -98,6 +100,10 @@ async function renderIndex(index) {
   });
   DecayChart.render(SECTIONS.decay, {
     decay: bundle.decay,
+    indexLabel,
+  });
+  EventStudyChart.render(SECTIONS.eventStudy, {
+    events: bundle.events,
     indexLabel,
   });
 }

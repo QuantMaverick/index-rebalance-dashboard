@@ -52,10 +52,17 @@
       </p>
     </section>
 
-    <!-- Future-phase placeholders so the layout is visible end-to-end -->
-    <section class="bg-zinc-900 border border-zinc-800 rounded p-4 opacity-60">
-      <h2 class="text-lg font-semibold mb-2">Event-study CAR over time <span class="text-xs text-zinc-500 font-mono">(Step 2)</span></h2>
-      <div class="h-72 skel">market-model + sector-matched AR · ±1 SE shading · lands next commit</div>
+    <!-- Event-study chart -->
+    <section class="bg-zinc-900 border border-zinc-800 rounded p-4">
+      <div class="flex items-baseline justify-between mb-2">
+        <h2 class="text-lg font-semibold">Event-study CAR around announcement</h2>
+        <span class="text-xs text-zinc-500 font-mono">market-model · sector-matched · ±1 SE</span>
+      </div>
+      <div id="event-study-chart" class="h-96"><div class="skel">aggregating event-level CARs…</div></div>
+      <p class="text-xs text-zinc-500 mt-3 max-w-3xl">
+        <span class="text-zinc-300 font-semibold">What this shows:</span>
+        Cumulative abnormal return averaged across all events, anchored at the announcement date (T-A = day 0). Two AR models — market-model (Brown-Warner 1985) and sector-matched control (median of 5 GICS+size peers) — let you compare specifications. ±1 SE shading uses the inter-window-independence approximation; it's an honest upper bound on uncertainty (real SE may be tighter due to within-event correlation).
+      </p>
     </section>
 
     <section class="bg-zinc-900 border border-zinc-800 rounded p-4 opacity-60">
