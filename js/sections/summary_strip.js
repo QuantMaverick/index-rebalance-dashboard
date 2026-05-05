@@ -8,6 +8,7 @@
  */
 
 import { fmtBpsDirect, fmtInt, fmtPct } from "../utils/format.js";
+import { median } from "../utils/stats.js";
 
 /**
  * @typedef {object} SummaryData
@@ -28,10 +29,11 @@ export function render(containerId, data) {
   const totalEvents = cohorts.reduce((s, c) => s + (c.n_events || 0), 0);
 
   const annual = data.tcaSummary.annual || [];
-  const meanForced =
-    annual.length === 0 ? NaN : annual.reduce((s, r) => s + r.mean_forced_bps, 0) / annual.length;
-  const meanSavings =
-    annual.length === 0 ? NaN : annual.reduce((s, r) => s + r.mean_savings_bps, 0) / annual.length;
+  // Use median across years — early cohorts have thin price-cache history that
+  // inflates the per-event mean impact. Median is robust to those outliers and
+  // is the honest summary number.
+  const medianForced = median(annual.map((r) => r.mean_forced_bps));
+  const medianSavings = median(annual.map((r) => r.mean_savings_bps));
 
   const allCarsAvg =
     cohorts.length === 0 ? NaN : cohorts.reduce((s, c) => s + c.mean_car, 0) / cohorts.length;
@@ -59,9 +61,9 @@ export function render(containerId, data) {
         "text-zinc-100",
       )}
       ${tile(
-        "Mean annual savings",
-        Number.isFinite(meanSavings) ? fmtBpsDirect(meanSavings) : "—",
-        Number.isFinite(meanForced) ? `forced exec avg: ${fmtBpsDirect(meanForced)}` : "",
+        "Median annual savings",
+        Number.isFinite(medianSavings) ? fmtBpsDirect(medianSavings) : "—",
+        Number.isFinite(medianForced) ? `median forced exec: ${fmtBpsDirect(medianForced)}` : "",
         "text-amber-400",
         true,
       )}
